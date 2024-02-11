@@ -3,6 +3,7 @@
 namespace App\Core;
 use App\Core\db\Database;
 use App\Core\db\DbModel;
+use App\Core\Exceptions\NotFoundException;
 
 class Application
 {
@@ -13,10 +14,11 @@ class Application
     public Controller $controller;
     public Database $db;
     public static Application $app;
-    public string $userClass;
+    public $userClass;
     public Session $session;
     public ?DbModel $user;
     public $layout = 'main';
+    public View $view;
     public const EVENT_BEFORE_REQUEST = 'before_request';
     public const EVENT_AFTER_REQUEST = 'after_request';
 
@@ -25,7 +27,6 @@ class Application
     public function __construct(
         string $rootPath,
         array $config,
-        public ?View $view = null
     )
     {
         self::$ROOT_DIR = $rootPath;
@@ -36,6 +37,7 @@ class Application
         $this->session = new Session();
         self::$app = $this;
         $this->userClass = $config['userClass'];
+        $this->view = new View();
 
         /** @var DbModel $primaryValue */
         $primaryValue = $this->session->get('user');
@@ -46,6 +48,12 @@ class Application
             $this->user = null;
         }
     }
+
+    public function renderView($view, $params = [])
+    {
+        return Application::$app->view->renderView($view, $params);
+    }
+
 
     public function logout()
     {
